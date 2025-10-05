@@ -10,11 +10,13 @@ using Betsson.OnlineWallets.Exceptions;
 
 namespace Betsson.OnlineWallets.UnitTests;
 
-public class OnlineWalletsServiceTests
+public class OnlineWalletsServiceTests : IClassFixture<MockSetupFixture>
 {
+    private readonly MockSetupFixture _mockFixture;
     private readonly ITestOutputHelper _output;
-    public OnlineWalletsServiceTests(ITestOutputHelper output)
+    public OnlineWalletsServiceTests(MockSetupFixture fixture, ITestOutputHelper output)
     {
+        _mockFixture = fixture;
         _output = output;
     }
 
@@ -23,21 +25,14 @@ public class OnlineWalletsServiceTests
     {
         //Arrange
         decimal expectedBalanceAmount = 0;
-
-        Mock<IOnlineWalletRepository> mockWalletRepository = new Mock<IOnlineWalletRepository>();
-
-        mockWalletRepository
+        _mockFixture.mockWalletRepository
             .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
             .ReturnsAsync(new OnlineWalletEntry());
-
-        IOnlineWalletRepository repository = mockWalletRepository.Object;
-
-        OnlineWalletService service = new OnlineWalletService(repository);
 
 
         //Act
         _output.WriteLine("Getting balance.");
-        var balance = await service.GetBalanceAsync();
+        var balance = await _mockFixture.service.GetBalanceAsync();
 
         //Assert
         _output.WriteLine("Expected Balance: " + expectedBalanceAmount);
@@ -50,20 +45,17 @@ public class OnlineWalletsServiceTests
     {
         //Arrange
         Deposit deposit = new Deposit { Amount = 10 };
-
-        Mock<IOnlineWalletRepository> mockWalletRepository = new Mock<IOnlineWalletRepository>();
-
         //This will be the "last entry" created when depositing funds.
         OnlineWalletEntry lastWalletEntry = new OnlineWalletEntry();
 
         decimal expectedBalanceAmount = deposit.Amount + lastWalletEntry.Amount;
 
-        mockWalletRepository
+        _mockFixture.mockWalletRepository
             .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
             .ReturnsAsync(lastWalletEntry);
 
         //Stores the deposited funds as lastWalletEntry.
-        mockWalletRepository
+        _mockFixture.mockWalletRepository
             .Setup(repo => repo.InsertOnlineWalletEntryAsync(It.IsAny<OnlineWalletEntry>()))
             .Callback<OnlineWalletEntry>(entry =>
             {
@@ -72,17 +64,12 @@ public class OnlineWalletsServiceTests
             })
             .Returns(Task.CompletedTask);
 
-
-        IOnlineWalletRepository repository = mockWalletRepository.Object;
-
-        OnlineWalletService service = new OnlineWalletService(repository);
-
         _output.WriteLine("Depositing balance.");
-        Balance updatedBalance = await service.DepositFundsAsync(deposit);
+        Balance updatedBalance = await _mockFixture.service.DepositFundsAsync(deposit);
 
         //Act
         _output.WriteLine("Getting balance.");
-        Balance balanceAfterDeposit = await service.GetBalanceAsync();
+        Balance balanceAfterDeposit = await _mockFixture.service.GetBalanceAsync();
 
         //Assert
         _output.WriteLine("Expected Balance: " + expectedBalanceAmount);
@@ -96,26 +83,19 @@ public class OnlineWalletsServiceTests
         //Arrange
         Deposit deposit = new Deposit { Amount = 10 };
 
-        Mock<IOnlineWalletRepository> mockWalletRepository = new Mock<IOnlineWalletRepository>();
-
         decimal expectedBalanceAmount = deposit.Amount;
 
-        mockWalletRepository
+        _mockFixture.mockWalletRepository
             .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
             .ReturnsAsync(new OnlineWalletEntry());
 
-        mockWalletRepository
+        _mockFixture.mockWalletRepository
             .Setup(repo => repo.InsertOnlineWalletEntryAsync(It.IsAny<OnlineWalletEntry>()))
             .Returns(Task.CompletedTask);
 
-
-        IOnlineWalletRepository repository = mockWalletRepository.Object;
-
-        OnlineWalletService service = new OnlineWalletService(repository);
-
         //Act
         _output.WriteLine("Depositing funds.");
-        Balance updatedBalance = await service.DepositFundsAsync(deposit);
+        Balance updatedBalance = await _mockFixture.service.DepositFundsAsync(deposit);
 
         //Assert
         _output.WriteLine("Expected Balance: " + expectedBalanceAmount);
@@ -129,28 +109,21 @@ public class OnlineWalletsServiceTests
         //Arrange
         Deposit deposit = new Deposit { Amount = 10 };
 
-        Mock<IOnlineWalletRepository> mockWalletRepository = new Mock<IOnlineWalletRepository>();
-
         OnlineWalletEntry previousEntryWithBalance = new OnlineWalletEntry { Amount = 10 };
 
         decimal expectedBalanceAmount = deposit.Amount + previousEntryWithBalance.Amount;
 
-        mockWalletRepository
+        _mockFixture.mockWalletRepository
             .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
             .ReturnsAsync(previousEntryWithBalance);
 
-        mockWalletRepository
+        _mockFixture.mockWalletRepository
             .Setup(repo => repo.InsertOnlineWalletEntryAsync(It.IsAny<OnlineWalletEntry>()))
             .Returns(Task.CompletedTask);
 
-
-        IOnlineWalletRepository repository = mockWalletRepository.Object;
-
-        OnlineWalletService service = new OnlineWalletService(repository);
-
         //Act
         _output.WriteLine("Depositing funds.");
-        Balance updatedBalance = await service.DepositFundsAsync(deposit);
+        Balance updatedBalance = await _mockFixture.service.DepositFundsAsync(deposit);
 
         //Assert
         _output.WriteLine("Expected Balance: " + expectedBalanceAmount);
@@ -165,17 +138,11 @@ public class OnlineWalletsServiceTests
         //Arrange
         Deposit deposit = new Deposit { Amount = -10 };
 
-        Mock<IOnlineWalletRepository> mockWalletRepository = new Mock<IOnlineWalletRepository>();
-
-        IOnlineWalletRepository repository = mockWalletRepository.Object;
-
-        OnlineWalletService service = new OnlineWalletService(repository);
-
         //Act
         Func<Task> depositFunc = async () =>
         {
             _output.WriteLine("Depositing funds.");
-            await service.DepositFundsAsync(deposit);
+            await _mockFixture.service.DepositFundsAsync(deposit);
         };
 
         //Assert
@@ -188,21 +155,15 @@ public class OnlineWalletsServiceTests
         //Arrange
         Withdrawal withdrawal = new Withdrawal { Amount = 10 };
 
-        Mock<IOnlineWalletRepository> mockWalletRepository = new Mock<IOnlineWalletRepository>();
-
-        mockWalletRepository
+        _mockFixture.mockWalletRepository
             .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
             .ReturnsAsync(new OnlineWalletEntry());
-
-        IOnlineWalletRepository repository = mockWalletRepository.Object;
-
-        OnlineWalletService service = new OnlineWalletService(repository);
 
         //Act
         Func<Task> withdraw = async () =>
         {
             _output.WriteLine("Withdrawing funds.");
-            await service.WithdrawFundsAsync(withdrawal);
+            await _mockFixture.service.WithdrawFundsAsync(withdrawal);
         };
 
         //Assert
@@ -216,21 +177,15 @@ public class OnlineWalletsServiceTests
         //Arrange
         Withdrawal withdrawal = new Withdrawal { Amount = -10 };
 
-        Mock<IOnlineWalletRepository> mockWalletRepository = new Mock<IOnlineWalletRepository>();
-
-        mockWalletRepository
+        _mockFixture.mockWalletRepository
             .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
             .ReturnsAsync(new OnlineWalletEntry());
-
-        IOnlineWalletRepository repository = mockWalletRepository.Object;
-
-        OnlineWalletService service = new OnlineWalletService(repository);
 
         //Act
         Func<Task> withdraw = async () =>
         {
             _output.WriteLine("Withdrawing funds.");
-            await service.WithdrawFundsAsync(withdrawal);
+            await _mockFixture.service.WithdrawFundsAsync(withdrawal);
         };
 
         //Assert
@@ -247,19 +202,13 @@ public class OnlineWalletsServiceTests
 
         decimal expectedBalanceAmount = lastWalletEntry.Amount - withdrawal.Amount;
 
-        Mock<IOnlineWalletRepository> mockWalletRepository = new Mock<IOnlineWalletRepository>();
-
-        mockWalletRepository
+        _mockFixture.mockWalletRepository
             .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
             .ReturnsAsync(lastWalletEntry);
 
-        IOnlineWalletRepository repository = mockWalletRepository.Object;
-
-        OnlineWalletService service = new OnlineWalletService(repository);
-
         //Act
         _output.WriteLine("Withdrawing funds");
-        Balance currentBalance = await service.WithdrawFundsAsync(withdrawal);
+        Balance currentBalance = await _mockFixture.service.WithdrawFundsAsync(withdrawal);
 
         //Assert
         _output.WriteLine("Expected Balance: " + expectedBalanceAmount);
