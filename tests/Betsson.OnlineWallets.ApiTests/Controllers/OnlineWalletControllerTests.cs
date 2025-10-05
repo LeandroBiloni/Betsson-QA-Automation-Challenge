@@ -61,8 +61,8 @@ public class OnlineWalletControllerTests
     {
         //Arrange
         HttpStatusCode expectedStatusCode = HttpStatusCode.OK;
-        decimal amount = 10;
-        Balance balanceToDeposit = new Balance { Amount = amount };
+        decimal amountToDeposit = 10;
+        Balance balanceToDeposit = new Balance { Amount = amountToDeposit };
 
         //Act
         _output.WriteLine("Executing POST request.");
@@ -76,7 +76,7 @@ public class OnlineWalletControllerTests
         Assert.Equal(expectedStatusCode, currentStatusCode);
 
         //Arrange
-        decimal expectedBalanceAmount = amount;
+        decimal expectedBalanceAmount = amountToDeposit;
 
         //Act
         _output.WriteLine("Reading response body.");
@@ -92,8 +92,8 @@ public class OnlineWalletControllerTests
         Assert.Equal(expectedBalanceAmount, currentBalance);
 
         //Reset
-        _output.WriteLine("Undoing Deposit operation.");
-        Withdrawal balanceToWithdraw = new Withdrawal { Amount = amount };
+        _output.WriteLine("Test Reset - Undoing Deposit operation.");
+        Withdrawal balanceToWithdraw = new Withdrawal { Amount = amountToDeposit };
 
         await _httpClient.PostAsJsonAsync("/onlinewallet/withdraw", balanceToWithdraw);
     }
@@ -103,8 +103,8 @@ public class OnlineWalletControllerTests
     {
         //Arrange
         HttpStatusCode expectedStatusCode = HttpStatusCode.BadRequest;
-        decimal amount = -10;
-        Balance balanceToDeposit = new Balance { Amount = amount };
+        decimal amountToDeposit = -10;
+        Balance balanceToDeposit = new Balance { Amount = amountToDeposit };
 
         //Act
         _output.WriteLine("Executing POST request.");
@@ -123,12 +123,12 @@ public class OnlineWalletControllerTests
     {
         //Arrange
         HttpStatusCode expectedStatusCode = HttpStatusCode.BadRequest;
-        decimal amount = -10;
-        Withdrawal balanceToDeposit = new Withdrawal { Amount = amount };
+        decimal amountToWithdraw = -10;
+        Withdrawal balanceToWithdraw = new Withdrawal { Amount = amountToWithdraw };
 
         //Act
         _output.WriteLine("Executing POST request.");
-        HttpResponseMessage response = await _httpClient.PostAsJsonAsync("/onlinewallet/withdraw", balanceToDeposit);
+        HttpResponseMessage response = await _httpClient.PostAsJsonAsync("/onlinewallet/withdraw", balanceToWithdraw);
 
         HttpStatusCode currentStatusCode = response.StatusCode;
 
@@ -143,12 +143,12 @@ public class OnlineWalletControllerTests
     {
         //Arrange
         HttpStatusCode expectedStatusCode = HttpStatusCode.BadRequest;
-        decimal amount = 50;
-        Withdrawal balanceToDeposit = new Withdrawal { Amount = amount };
+        decimal amountToWithdraw = 50;
+        Withdrawal balanceToWithdraw = new Withdrawal { Amount = amountToWithdraw };
 
         //Act
         _output.WriteLine("Executing POST request.");
-        HttpResponseMessage response = await _httpClient.PostAsJsonAsync("/onlinewallet/withdraw", balanceToDeposit);
+        HttpResponseMessage response = await _httpClient.PostAsJsonAsync("/onlinewallet/withdraw", balanceToWithdraw);
 
         HttpStatusCode currentStatusCode = response.StatusCode;
 
@@ -156,5 +156,53 @@ public class OnlineWalletControllerTests
         _output.WriteLine("Expected Status: " + expectedStatusCode);
         _output.WriteLine("Current Status: " + currentStatusCode);
         Assert.Equal(expectedStatusCode, currentStatusCode);
+    }
+
+    [Fact]
+    public async Task PostWithdraw_WithEnoughFunds_ShouldReturn200_AndUpdatedAmount()
+    {
+        //Setup
+        _output.WriteLine("Test Setup - Depositing funds.");
+        decimal amountToDeposit = 20;
+        Balance balanceToDeposit = new Balance { Amount = amountToDeposit };
+        await _httpClient.PostAsJsonAsync("/onlinewallet/deposit", balanceToDeposit);
+
+        //Arrange
+        HttpStatusCode expectedStatusCode = HttpStatusCode.OK;
+        decimal amountToWithdraw = 10;
+        Withdrawal balanceToWithdraw = new Withdrawal { Amount = amountToWithdraw };
+
+        //Act
+        _output.WriteLine("Executing POST request.");
+        HttpResponseMessage response = await _httpClient.PostAsJsonAsync("/onlinewallet/withdraw", balanceToWithdraw);
+
+        HttpStatusCode currentStatusCode = response.StatusCode;
+
+        //Assert
+        _output.WriteLine("Expected Status: " + expectedStatusCode);
+        _output.WriteLine("Current Status: " + currentStatusCode);
+        Assert.Equal(expectedStatusCode, currentStatusCode);
+
+        //Arrange
+        decimal expectedBalanceAmount = amountToDeposit - amountToWithdraw;
+
+        //Act
+        _output.WriteLine("Reading response body.");
+        Balance? balance = await response.Content.ReadFromJsonAsync<Balance>();
+
+        //Assert
+        Assert.NotNull(balance);
+
+        decimal currentBalance = balance.Amount;
+
+        _output.WriteLine("Expected Balance: " + expectedBalanceAmount);
+        _output.WriteLine("Current Balance: " + currentBalance);
+        Assert.Equal(expectedBalanceAmount, currentBalance);
+
+        //Reset
+        _output.WriteLine("Test Reset - Withdrawing remaining funds.");
+        Withdrawal balanceReset = new Withdrawal { Amount = currentBalance };
+
+        await _httpClient.PostAsJsonAsync("/onlinewallet/withdraw", balanceReset);
     }
 }
