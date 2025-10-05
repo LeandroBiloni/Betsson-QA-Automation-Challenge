@@ -34,12 +34,12 @@ public class OnlineWalletsServiceTests
 
 
         //Act
+        _output.WriteLine("Getting balance.");
         var balance = await service.GetBalanceAsync();
 
-        _output.WriteLine("Balance: " + balance.Amount);
-
-
         //Assert
+        _output.WriteLine("Expected Balance: " + expectedBalanceAmount);
+        _output.WriteLine("Current Balance: " + balance.Amount);
         Assert.Equal(expectedBalanceAmount, balance.Amount);
     }
 
@@ -75,18 +75,16 @@ public class OnlineWalletsServiceTests
 
         OnlineWalletService service = new OnlineWalletService(repository);
 
+        _output.WriteLine("Depositing balance.");
         Balance updatedBalance = await service.DepositFundsAsync(deposit);
 
-        _output.WriteLine("Updated balance: " + updatedBalance.Amount);
-
-
         //Act
+        _output.WriteLine("Getting balance.");
         Balance balanceAfterDeposit = await service.GetBalanceAsync();
 
-        _output.WriteLine("Balance after deposit: " + balanceAfterDeposit.Amount);
-
-
         //Assert
+        _output.WriteLine("Expected Balance: " + expectedBalanceAmount);
+        _output.WriteLine("Current Balance: " + balanceAfterDeposit.Amount);
         Assert.Equal(expectedBalanceAmount, balanceAfterDeposit.Amount);
     }
 
@@ -114,11 +112,12 @@ public class OnlineWalletsServiceTests
         OnlineWalletService service = new OnlineWalletService(repository);
 
         //Act
+        _output.WriteLine("Depositing funds.");
         Balance updatedBalance = await service.DepositFundsAsync(deposit);
 
-        _output.WriteLine("Balance: " + updatedBalance.Amount);
-
         //Assert
+        _output.WriteLine("Expected Balance: " + expectedBalanceAmount);
+        _output.WriteLine("Current Balance: " + updatedBalance.Amount);
         Assert.Equal(expectedBalanceAmount, updatedBalance.Amount);
     }
     
@@ -148,11 +147,12 @@ public class OnlineWalletsServiceTests
         OnlineWalletService service = new OnlineWalletService(repository);
 
         //Act
+        _output.WriteLine("Depositing funds.");
         Balance updatedBalance = await service.DepositFundsAsync(deposit);
 
-        _output.WriteLine("Updated balance: " + updatedBalance.Amount);
-
         //Assert
+        _output.WriteLine("Expected Balance: " + expectedBalanceAmount);
+        _output.WriteLine("Current Balance: " + updatedBalance.Amount);
         Assert.Equal(expectedBalanceAmount, updatedBalance.Amount);
     }
 }
