@@ -5,6 +5,7 @@ using Betsson.OnlineWallets.Services;
 using Betsson.OnlineWallets.Data.Models;
 using Xunit.Abstractions;
 using Betsson.OnlineWallets.Models;
+using Xunit.Sdk;
 
 namespace Betsson.OnlineWallets.UnitTests;
 
@@ -120,7 +121,7 @@ public class OnlineWalletsServiceTests
         _output.WriteLine("Current Balance: " + updatedBalance.Amount);
         Assert.Equal(expectedBalanceAmount, updatedBalance.Amount);
     }
-    
+
     [Fact]
     public async Task DepositFunds_WithPreviousBalance_ReturnsUpdatedBalance()
     {
@@ -154,5 +155,24 @@ public class OnlineWalletsServiceTests
         _output.WriteLine("Expected Balance: " + expectedBalanceAmount);
         _output.WriteLine("Current Balance: " + updatedBalance.Amount);
         Assert.Equal(expectedBalanceAmount, updatedBalance.Amount);
+    }
+    
+    //This test will fail, it's created considering the future implementation of a validation of a negative or zero amount to deposit.
+    [Fact]
+    public async Task DepositFunds_WithNegativeAmount_ShouldThrowError()
+    {
+        //Arrange
+        Deposit deposit = new Deposit { Amount = -10 };
+
+        Mock<IOnlineWalletRepository> mockWalletRepository = new Mock<IOnlineWalletRepository>();
+
+        IOnlineWalletRepository repository = mockWalletRepository.Object;
+
+        OnlineWalletService service = new OnlineWalletService(repository);
+
+        //Act
+        
+        //Assert
+        await Assert.ThrowsAsync<ArgumentException>(() => service.DepositFundsAsync(deposit));
     }
 }
