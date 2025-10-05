@@ -236,4 +236,34 @@ public class OnlineWalletsServiceTests
         //Assert
         await Assert.ThrowsAsync<ArgumentException>(withdraw);
     }    
+
+    [Fact]
+    public async Task WithdrawFunds_WithBalance_ReturnsUpdatedBalance()
+    {
+        //Arrange
+        Withdrawal withdrawal = new Withdrawal { Amount = 10 };
+
+        OnlineWalletEntry lastWalletEntry = new OnlineWalletEntry { Amount = 20 };
+
+        decimal expectedBalanceAmount = lastWalletEntry.Amount - withdrawal.Amount;
+
+        Mock<IOnlineWalletRepository> mockWalletRepository = new Mock<IOnlineWalletRepository>();
+
+        mockWalletRepository
+            .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
+            .ReturnsAsync(lastWalletEntry);
+
+        IOnlineWalletRepository repository = mockWalletRepository.Object;
+
+        OnlineWalletService service = new OnlineWalletService(repository);
+
+        //Act
+        _output.WriteLine("Withdrawing funds");
+        Balance currentBalance = await service.WithdrawFundsAsync(withdrawal);
+
+        //Assert
+        _output.WriteLine("Expected Balance: " + expectedBalanceAmount);
+        _output.WriteLine("Current Balance: " + currentBalance.Amount);
+        Assert.Equal(expectedBalanceAmount, currentBalance.Amount);
+    } 
 }
