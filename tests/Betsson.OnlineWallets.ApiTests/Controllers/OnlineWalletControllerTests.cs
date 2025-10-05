@@ -117,4 +117,24 @@ public class OnlineWalletControllerTests
         _output.WriteLine("Current Status: " + currentStatusCode);
         Assert.Equal(expectedStatusCode, currentStatusCode);
     }
+
+    [Fact]
+    public async Task PostWithdraw_WithInvalidValue_ShouldReturn400()
+    {
+        //Arrange
+        HttpStatusCode expectedStatusCode = HttpStatusCode.BadRequest;
+        decimal amount = -10;
+        Withdrawal balanceToDeposit = new Withdrawal { Amount = amount };
+
+        //Act
+        _output.WriteLine("Executing POST request.");
+        HttpResponseMessage response = await _httpClient.PostAsJsonAsync("/onlinewallet/withdraw", balanceToDeposit);
+
+        HttpStatusCode currentStatusCode = response.StatusCode;
+
+        //Assert
+        _output.WriteLine("Expected Status: " + expectedStatusCode);
+        _output.WriteLine("Current Status: " + currentStatusCode);
+        Assert.Equal(expectedStatusCode, currentStatusCode);
+    }
 }
