@@ -89,4 +89,38 @@ public class OnlineWalletsServiceTests
         //Assert
         Assert.Equal(expectedBalanceAmount, balanceAfterDeposit.Amount);
     }
+
+    [Fact]
+    public async Task DepositFunds_PositiveAmount_ReturnsUpdatedBalance()
+    {
+        //Arrange
+        Deposit deposit = new Deposit { Amount = 10 };
+
+        Mock<IOnlineWalletRepository> mockWalletRepository = new Mock<IOnlineWalletRepository>();
+
+        decimal expectedBalanceAmount = deposit.Amount;
+
+        mockWalletRepository
+            .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
+            .ReturnsAsync(new OnlineWalletEntry());
+
+        mockWalletRepository
+            .Setup(repo => repo.InsertOnlineWalletEntryAsync(It.IsAny<OnlineWalletEntry>()))
+            .Returns(Task.CompletedTask);
+
+
+        IOnlineWalletRepository repository = mockWalletRepository.Object;
+
+        OnlineWalletService service = new OnlineWalletService(repository);
+
+        //Act
+        Balance updatedBalance = await service.DepositFundsAsync(deposit);
+
+        _output.WriteLine("Balance: " + updatedBalance.Amount);
+
+        //Assert
+        Assert.Equal(expectedBalanceAmount, updatedBalance.Amount);
+    }
+
+    
 }
