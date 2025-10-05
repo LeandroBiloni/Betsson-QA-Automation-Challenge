@@ -29,30 +29,35 @@ public class OnlineWalletControllerTests
         HttpStatusCode expectedStatusCode = HttpStatusCode.OK;
 
         //Act
+        _output.WriteLine("Executing GET request.");
         HttpResponseMessage response = await _httpClient.GetAsync("/onlinewallet/balance");
 
         HttpStatusCode currentStatusCode = response.StatusCode;
 
         //Assert
+        _output.WriteLine("Expected Status: " + expectedStatusCode);
+        _output.WriteLine("Current Status: " + currentStatusCode);
         Assert.Equal(expectedStatusCode, currentStatusCode);
 
         //Arrange
         decimal expectedBalanceAmount = 0;
 
         //Act
+        _output.WriteLine("Reading response body.");
         Balance? balance = await response.Content.ReadFromJsonAsync<Balance>();
 
         //Assert
         Assert.NotNull(balance);
 
         decimal currentBalance = balance.Amount;
-        _output.WriteLine("Current Balance: " + currentBalance);
 
+        _output.WriteLine("Expected Balance: " + expectedBalanceAmount);
+        _output.WriteLine("Current Balance: " + currentBalance);
         Assert.Equal(expectedBalanceAmount, currentBalance);
     }
 
     [Fact]
-    public async Task PostDeposit_ShouldReturn200_AndDepositedAmount()
+    public async Task PostDeposit_WithValidAmount_ShouldReturn200_AndDepositedAmount()
     {
         //Arrange
         HttpStatusCode expectedStatusCode = HttpStatusCode.OK;
@@ -60,29 +65,34 @@ public class OnlineWalletControllerTests
         Balance balanceToDeposit = new Balance { Amount = amount };
 
         //Act
+        _output.WriteLine("Executing POST request.");
         HttpResponseMessage response = await _httpClient.PostAsJsonAsync("/onlinewallet/deposit", balanceToDeposit);
 
         HttpStatusCode currentStatusCode = response.StatusCode;
 
         //Assert
+        _output.WriteLine("Expected Status: " + expectedStatusCode);
+        _output.WriteLine("Current Status: " + currentStatusCode);
         Assert.Equal(expectedStatusCode, currentStatusCode);
 
         //Arrange
         decimal expectedBalanceAmount = amount;
 
         //Act
+        _output.WriteLine("Reading response body.");
         Balance? balance = await response.Content.ReadFromJsonAsync<Balance>();
 
         //Assert
         Assert.NotNull(balance);
 
         decimal currentBalance = balance.Amount;
+
         _output.WriteLine("Expected Balance: " + expectedBalanceAmount);
         _output.WriteLine("Current Balance: " + currentBalance);
-
         Assert.Equal(expectedBalanceAmount, currentBalance);
 
         //Reset
+        _output.WriteLine("Undoing Deposit operation.");
         Withdrawal balanceToWithdraw = new Withdrawal { Amount = amount };
 
         await _httpClient.PostAsJsonAsync("/onlinewallet/withdraw", balanceToWithdraw);
