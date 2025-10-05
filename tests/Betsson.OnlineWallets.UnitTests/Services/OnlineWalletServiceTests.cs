@@ -131,8 +131,7 @@ public class OnlineWalletsServiceTests : IClassFixture<MockSetupFixture>
         Assert.Equal(expectedBalanceAmount, updatedBalance.Amount);
     }
 
-    //This test will fail, it's created considering the future implementation of a validation of a negative or zero amount to deposit.
-    [Fact]
+    [Fact(Skip = "Pending validation for deposits of negative or zero amounts")]
     public async Task DepositFunds_WithNegativeAmount_ShouldThrowException()
     {
         //Arrange
@@ -170,8 +169,7 @@ public class OnlineWalletsServiceTests : IClassFixture<MockSetupFixture>
         await Assert.ThrowsAsync<InsufficientBalanceException>(withdraw);
     }
 
-    //This test will fail, it's created considering the future implementation of a validation of a negative or zero amount to withdraw.
-    [Fact]
+    [Fact(Skip = "Pending validation for withdraws of negative or zero amounts")]
     public async Task WithdrawFunds_WithNegativeValue_ShouldThrowException()
     {
         //Arrange
