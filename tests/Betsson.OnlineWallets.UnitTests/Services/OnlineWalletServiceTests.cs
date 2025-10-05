@@ -203,4 +203,32 @@ public class OnlineWalletsServiceTests
         //Assert
         await Assert.ThrowsAsync<InsufficientBalanceException>(withdraw);
     }
+
+    //This test will fail, it's created considering the future implementation of a validation of a negative or zero amount to withdraw.
+    [Fact]
+    public async Task WithdrawFunds_WithNegativeValue_ShouldThrowException()
+    {
+        //Arrange
+        Withdrawal withdrawal = new Withdrawal { Amount = -10 };
+
+        Mock<IOnlineWalletRepository> mockWalletRepository = new Mock<IOnlineWalletRepository>();
+
+        mockWalletRepository
+            .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
+            .ReturnsAsync(new OnlineWalletEntry());
+
+        IOnlineWalletRepository repository = mockWalletRepository.Object;
+
+        OnlineWalletService service = new OnlineWalletService(repository);
+
+        //Act
+        Func<Task> withdraw = async () =>
+        {
+            _output.WriteLine("Withdrawing funds.");
+            await service.WithdrawFundsAsync(withdrawal);
+        };
+
+        //Assert
+        await Assert.ThrowsAsync<ArgumentException>(withdraw);
+    }    
 }
