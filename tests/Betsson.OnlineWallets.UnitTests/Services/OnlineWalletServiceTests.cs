@@ -172,9 +172,14 @@ public class OnlineWalletsServiceTests
         OnlineWalletService service = new OnlineWalletService(repository);
 
         //Act
+        Func<Task> depositFunc = async () =>
+        {
+            _output.WriteLine("Depositing funds.");
+            await service.DepositFundsAsync(deposit);
+        };
 
         //Assert
-        await Assert.ThrowsAsync<ArgumentException>(() => service.DepositFundsAsync(deposit));
+        await Assert.ThrowsAsync<ArgumentException>(depositFunc);
     }
 
     [Fact]
