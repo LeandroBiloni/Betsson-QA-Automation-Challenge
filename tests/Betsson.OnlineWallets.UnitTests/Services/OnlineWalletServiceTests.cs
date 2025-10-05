@@ -6,6 +6,7 @@ using Betsson.OnlineWallets.Data.Models;
 using Xunit.Abstractions;
 using Betsson.OnlineWallets.Models;
 using Xunit.Sdk;
+using Betsson.OnlineWallets.Exceptions;
 
 namespace Betsson.OnlineWallets.UnitTests;
 
@@ -156,10 +157,10 @@ public class OnlineWalletsServiceTests
         _output.WriteLine("Current Balance: " + updatedBalance.Amount);
         Assert.Equal(expectedBalanceAmount, updatedBalance.Amount);
     }
-    
+
     //This test will fail, it's created considering the future implementation of a validation of a negative or zero amount to deposit.
     [Fact]
-    public async Task DepositFunds_WithNegativeAmount_ShouldThrowError()
+    public async Task DepositFunds_WithNegativeAmount_ShouldThrowException()
     {
         //Arrange
         Deposit deposit = new Deposit { Amount = -10 };
@@ -171,8 +172,35 @@ public class OnlineWalletsServiceTests
         OnlineWalletService service = new OnlineWalletService(repository);
 
         //Act
-        
+
         //Assert
         await Assert.ThrowsAsync<ArgumentException>(() => service.DepositFundsAsync(deposit));
+    }
+
+    [Fact]
+    public async Task WithdrawFunds_WithInsufficientBalance_ShouldThrowException()
+    {
+        //Arrange
+        Withdrawal withdrawal = new Withdrawal { Amount = 10 };
+
+        Mock<IOnlineWalletRepository> mockWalletRepository = new Mock<IOnlineWalletRepository>();
+
+        mockWalletRepository
+            .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
+            .ReturnsAsync(new OnlineWalletEntry());
+
+        IOnlineWalletRepository repository = mockWalletRepository.Object;
+
+        OnlineWalletService service = new OnlineWalletService(repository);
+
+        //Act
+        Func<Task> withdraw = async () =>
+        {
+            _output.WriteLine("Withdrawing funds.");
+            await service.WithdrawFundsAsync(withdrawal);
+        };
+
+        //Assert
+        await Assert.ThrowsAsync<InsufficientBalanceException>(withdraw);
     }
 }
