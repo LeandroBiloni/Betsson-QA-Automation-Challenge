@@ -74,7 +74,7 @@ public class OnlineWalletsServiceTests
         IOnlineWalletRepository repository = mockWalletRepository.Object;
 
         OnlineWalletService service = new OnlineWalletService(repository);
-        
+
         Balance updatedBalance = await service.DepositFundsAsync(deposit);
 
         _output.WriteLine("Updated balance: " + updatedBalance.Amount);
@@ -121,6 +121,38 @@ public class OnlineWalletsServiceTests
         //Assert
         Assert.Equal(expectedBalanceAmount, updatedBalance.Amount);
     }
-
     
+    [Fact]
+    public async Task DepositFunds_WithPreviousBalance_ReturnsUpdatedBalance()
+    {
+        //Arrange
+        Deposit deposit = new Deposit { Amount = 10 };
+
+        Mock<IOnlineWalletRepository> mockWalletRepository = new Mock<IOnlineWalletRepository>();
+
+        OnlineWalletEntry previousEntryWithBalance = new OnlineWalletEntry { Amount = 10 };
+
+        decimal expectedBalanceAmount = deposit.Amount + previousEntryWithBalance.Amount;
+
+        mockWalletRepository
+            .Setup(repo => repo.GetLastOnlineWalletEntryAsync())
+            .ReturnsAsync(previousEntryWithBalance);
+
+        mockWalletRepository
+            .Setup(repo => repo.InsertOnlineWalletEntryAsync(It.IsAny<OnlineWalletEntry>()))
+            .Returns(Task.CompletedTask);
+
+
+        IOnlineWalletRepository repository = mockWalletRepository.Object;
+
+        OnlineWalletService service = new OnlineWalletService(repository);
+
+        //Act
+        Balance updatedBalance = await service.DepositFundsAsync(deposit);
+
+        _output.WriteLine("Updated balance: " + updatedBalance.Amount);
+
+        //Assert
+        Assert.Equal(expectedBalanceAmount, updatedBalance.Amount);
+    }
 }
