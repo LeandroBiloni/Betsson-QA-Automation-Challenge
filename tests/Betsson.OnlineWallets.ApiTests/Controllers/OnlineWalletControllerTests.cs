@@ -6,19 +6,13 @@ using Xunit.Abstractions;
 
 namespace Betsson.OnlineWallets.UnitTests;
 
-public class OnlineWalletControllerTests
+public class OnlineWalletControllerTests : IClassFixture<SetupFixture>
 {
-    private readonly string HTTP = "http://";
-    private readonly string HOST = "localhost";
-    private readonly string PORT = ":5000";
-    private readonly HttpClient _httpClient;
     private readonly ITestOutputHelper _output;
-    public OnlineWalletControllerTests(ITestOutputHelper output)
+    private readonly SetupFixture _fixture;
+    public OnlineWalletControllerTests(SetupFixture fixture, ITestOutputHelper output)
     {
-        string url = string.Concat(HTTP, HOST, PORT);
-
-        _httpClient = new HttpClient { BaseAddress = new Uri(url) };
-
+        _fixture = fixture;
         _output = output;
     }
 
@@ -30,7 +24,7 @@ public class OnlineWalletControllerTests
 
         //Act
         _output.WriteLine("Executing GET request.");
-        HttpResponseMessage response = await _httpClient.GetAsync("/onlinewallet/balance");
+        HttpResponseMessage response = await _fixture.httpClient.GetAsync(_fixture.BALANCE_ENDPOINT);
 
         HttpStatusCode currentStatusCode = response.StatusCode;
 
@@ -66,7 +60,7 @@ public class OnlineWalletControllerTests
 
         //Act
         _output.WriteLine("Executing POST request.");
-        HttpResponseMessage response = await _httpClient.PostAsJsonAsync("/onlinewallet/deposit", balanceToDeposit);
+        HttpResponseMessage response = await _fixture.httpClient.PostAsJsonAsync(_fixture.DEPOSIT_ENDPOINT, balanceToDeposit);
 
         HttpStatusCode currentStatusCode = response.StatusCode;
 
@@ -95,7 +89,7 @@ public class OnlineWalletControllerTests
         _output.WriteLine("Test Reset - Undoing Deposit operation.");
         Withdrawal balanceToWithdraw = new Withdrawal { Amount = amountToDeposit };
 
-        await _httpClient.PostAsJsonAsync("/onlinewallet/withdraw", balanceToWithdraw);
+        await _fixture.httpClient.PostAsJsonAsync(_fixture.WITHDRAW_ENDPOINT, balanceToWithdraw);
     }
 
     [Fact]
@@ -108,7 +102,7 @@ public class OnlineWalletControllerTests
 
         //Act
         _output.WriteLine("Executing POST request.");
-        HttpResponseMessage response = await _httpClient.PostAsJsonAsync("/onlinewallet/deposit", balanceToDeposit);
+        HttpResponseMessage response = await _fixture.httpClient.PostAsJsonAsync(_fixture.DEPOSIT_ENDPOINT, balanceToDeposit);
 
         HttpStatusCode currentStatusCode = response.StatusCode;
 
@@ -128,7 +122,7 @@ public class OnlineWalletControllerTests
 
         //Act
         _output.WriteLine("Executing POST request.");
-        HttpResponseMessage response = await _httpClient.PostAsJsonAsync("/onlinewallet/withdraw", balanceToWithdraw);
+        HttpResponseMessage response = await _fixture.httpClient.PostAsJsonAsync(_fixture.WITHDRAW_ENDPOINT, balanceToWithdraw);
 
         HttpStatusCode currentStatusCode = response.StatusCode;
 
@@ -148,7 +142,7 @@ public class OnlineWalletControllerTests
 
         //Act
         _output.WriteLine("Executing POST request.");
-        HttpResponseMessage response = await _httpClient.PostAsJsonAsync("/onlinewallet/withdraw", balanceToWithdraw);
+        HttpResponseMessage response = await _fixture.httpClient.PostAsJsonAsync(_fixture.WITHDRAW_ENDPOINT, balanceToWithdraw);
 
         HttpStatusCode currentStatusCode = response.StatusCode;
 
@@ -165,7 +159,7 @@ public class OnlineWalletControllerTests
         _output.WriteLine("Test Setup - Depositing funds.");
         decimal amountToDeposit = 20;
         Balance balanceToDeposit = new Balance { Amount = amountToDeposit };
-        await _httpClient.PostAsJsonAsync("/onlinewallet/deposit", balanceToDeposit);
+        await _fixture.httpClient.PostAsJsonAsync(_fixture.DEPOSIT_ENDPOINT, balanceToDeposit);
 
         //Arrange
         HttpStatusCode expectedStatusCode = HttpStatusCode.OK;
@@ -174,7 +168,7 @@ public class OnlineWalletControllerTests
 
         //Act
         _output.WriteLine("Executing POST request.");
-        HttpResponseMessage response = await _httpClient.PostAsJsonAsync("/onlinewallet/withdraw", balanceToWithdraw);
+        HttpResponseMessage response = await _fixture.httpClient.PostAsJsonAsync(_fixture.WITHDRAW_ENDPOINT, balanceToWithdraw);
 
         HttpStatusCode currentStatusCode = response.StatusCode;
 
@@ -203,6 +197,6 @@ public class OnlineWalletControllerTests
         _output.WriteLine("Test Reset - Withdrawing remaining funds.");
         Withdrawal balanceReset = new Withdrawal { Amount = currentBalance };
 
-        await _httpClient.PostAsJsonAsync("/onlinewallet/withdraw", balanceReset);
+        await _fixture.httpClient.PostAsJsonAsync(_fixture.WITHDRAW_ENDPOINT, balanceReset);
     }
 }
