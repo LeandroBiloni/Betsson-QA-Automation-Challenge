@@ -1,11 +1,8 @@
 using Xunit;
 using Moq;
-using Betsson.OnlineWallets.Data.Repositories;
-using Betsson.OnlineWallets.Services;
 using Betsson.OnlineWallets.Data.Models;
 using Xunit.Abstractions;
 using Betsson.OnlineWallets.Models;
-using Xunit.Sdk;
 using Betsson.OnlineWallets.Exceptions;
 
 namespace Betsson.OnlineWallets.UnitTests;

@@ -1,7 +1,6 @@
 using Betsson.OnlineWallets.Data.Repositories;
 using Betsson.OnlineWallets.Services;
 using Moq;
-using Xunit.Abstractions;
 
 public class MockSetupFixture
 {
